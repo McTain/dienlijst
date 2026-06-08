@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      diensten: {
+        Row: {
+          aanwezig_tijd: string
+          created_at: string
+          datum: string
+          dienst_tijd: string
+          id: string
+          misdienaars: string[]
+          titel: string
+          toelichting: string
+          updated_at: string
+        }
+        Insert: {
+          aanwezig_tijd: string
+          created_at?: string
+          datum: string
+          dienst_tijd: string
+          id?: string
+          misdienaars?: string[]
+          titel?: string
+          toelichting?: string
+          updated_at?: string
+        }
+        Update: {
+          aanwezig_tijd?: string
+          created_at?: string
+          datum?: string
+          dienst_tijd?: string
+          id?: string
+          misdienaars?: string[]
+          titel?: string
+          toelichting?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
