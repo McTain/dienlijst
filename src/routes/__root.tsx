@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Dienlijst RK Venray" },
+      { name: "description", content: "Altar Assistant is a modern web application for managing church altar server schedules." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Dienlijst RK Venray" },
+      { property: "og:description", content: "Altar Assistant is a modern web application for managing church altar server schedules." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Dienlijst RK Venray" },
+      { name: "twitter:description", content: "Altar Assistant is a modern web application for managing church altar server schedules." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/08432bcd-c704-4b88-92ef-a29196ec0e6c/id-preview-aef321e8--998a2d2a-8cef-47a1-91f3-1c0932328df2.lovable.app-1780947467721.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/08432bcd-c704-4b88-92ef-a29196ec0e6c/id-preview-aef321e8--998a2d2a-8cef-47a1-91f3-1c0932328df2.lovable.app-1780947467721.png" },
     ],
     links: [
       {
