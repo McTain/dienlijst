@@ -5,11 +5,10 @@ import { categorize, dayName, formatDate, MONTHS, parseDate } from "@/lib/dienst
 type Props = {
   diensten: Dienst[];
   filter: "all" | "ochtend" | "avond" | "feest";
-  search: string;
   myName: string;
 };
 
-export function ServiceList({ diensten, filter, search, myName }: Props) {
+export function ServiceList({ diensten, filter, myName }: Props) {
   const [showFuture, setShowFuture] = useState(false);
 
   const today = useMemo(() => {
