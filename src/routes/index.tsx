@@ -38,7 +38,7 @@ function Index() {
   });
 
   const [filter, setFilter] = useState<Filter>("all");
-  const [search, setSearch] = useState("");
+  
   const [myName, setMyName] = useState("");
   const [adminPw, setAdminPw] = useState<string | null>(null);
   const [showLogin, setShowLogin] = useState(false);
