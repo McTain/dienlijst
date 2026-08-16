@@ -18,7 +18,7 @@ export function ServiceList({ diensten, filter, myName }: Props) {
   }, []);
   const cutoff = useMemo(() => {
     const d = new Date(today);
-    d.setDate(d.getDate() + 6);
+    d.setDate(d.getDate() + 13);
     return d;
   }, [today]);
 
