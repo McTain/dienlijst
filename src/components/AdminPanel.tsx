@@ -185,47 +185,41 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
 
       <div className="bg-card border border-border p-5 sm:p-6">
         <h2 className="font-serif text-primary text-lg border-b border-border pb-2 mb-3">
-          Alle diensten ({diensten.length})
+          Komende diensten ({upcoming.length})
         </h2>
-        <div className="overflow-x-auto -mx-5 sm:mx-0">
-          <table className="w-full text-sm border-collapse min-w-[600px]">
-            <thead>
-              <tr className="text-left text-[0.72rem] uppercase text-muted-foreground border-b-2 border-border">
-                <th className="py-2 px-2">Datum</th>
-                <th className="py-2 px-2">Aanw.</th>
-                <th className="py-2 px-2">Dienst</th>
-                <th className="py-2 px-2">Titel</th>
-                <th className="py-2 px-2">Misdienaars</th>
-                <th className="py-2 px-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {diensten.map((d) => (
-                <tr key={d.id} className="border-b border-border hover:bg-muted">
-                  <td className="py-1.5 px-2 whitespace-nowrap">{formatDate(d.datum)}</td>
-                  <td className="py-1.5 px-2 tabular-nums">{d.aanwezig_tijd}</td>
-                  <td className="py-1.5 px-2 tabular-nums">{d.dienst_tijd}</td>
-                  <td className="py-1.5 px-2">{d.titel || "—"}</td>
-                  <td className="py-1.5 px-2 text-xs">{d.misdienaars.join(", ") || "—"}</td>
-                  <td className="py-1.5 px-2 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => setEditing(d)}
-                      className="text-primary hover:underline text-xs mr-3"
-                    >
-                      Bewerken
-                    </button>
-                    <button
-                      onClick={() => handleDelete(d.id)}
-                      className="text-destructive hover:underline text-xs"
-                    >
-                      Verwijderen
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {upcoming.length > 0 ? (
+          <DienstTable rows={upcoming} onEdit={setEditing} onDelete={handleDelete} />
+        ) : (
+          <p className="text-sm text-muted-foreground py-4">
+            Geen komende diensten.
+          </p>
+        )}
+
+        {past.length > 0 && (
+          <div className="mt-4">
+            {!showPast ? (
+              <button
+                onClick={() => setShowPast(true)}
+                className="w-full text-center text-sm py-3 bg-muted border border-border text-primary hover:bg-primary-bg transition-colors rounded-sm"
+              >
+                ▼ Toon reeds geweest diensten ({past.length})
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowPast(false)}
+                  className="w-full text-center text-sm py-3 bg-muted border border-border text-primary hover:bg-primary-bg transition-colors rounded-sm mb-3"
+                >
+                  ▲ Verberg reeds geweest diensten
+                </button>
+                <h3 className="font-serif text-primary text-base border-b border-border pb-2 mb-3">
+                  Reeds geweest ({past.length})
+                </h3>
+                <DienstTable rows={past} onEdit={setEditing} onDelete={handleDelete} />
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {(editing || creating) && (
