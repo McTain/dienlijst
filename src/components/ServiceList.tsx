@@ -23,7 +23,6 @@ export function ServiceList({ diensten, filter, myName }: Props) {
   }, [today]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return diensten.filter((d) => {
       const dt = parseDate(d.datum);
       if (dt < today) return false;
@@ -31,16 +30,10 @@ export function ServiceList({ diensten, filter, myName }: Props) {
       if (filter === "feest" && cat !== "feest") return false;
       if (filter === "ochtend" && cat !== "ochtend") return false;
       if (filter === "avond" && cat !== "avond") return false;
-      if (q) {
-        const hit =
-          d.titel.toLowerCase().includes(q) ||
-          d.misdienaars.some((n) => n.toLowerCase().includes(q));
-        if (!hit) return false;
-      }
       if (myName && !d.misdienaars.includes(myName)) return false;
       return true;
     });
-  }, [diensten, filter, search, myName, today]);
+  }, [diensten, filter, myName, today]);
 
   const groups = useMemo(() => {
     const map = new Map<string, Dienst[]>();
