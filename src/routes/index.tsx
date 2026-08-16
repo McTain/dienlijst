@@ -136,7 +136,7 @@ function Index() {
               <ServiceList
                 diensten={diensten}
                 filter={filter}
-                search={search}
+                
                 myName={myName}
               />
             )}
