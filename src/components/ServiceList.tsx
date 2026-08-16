@@ -5,11 +5,10 @@ import { categorize, dayName, formatDate, MONTHS, parseDate } from "@/lib/dienst
 type Props = {
   diensten: Dienst[];
   filter: "all" | "ochtend" | "avond" | "feest";
-  search: string;
   myName: string;
 };
 
-export function ServiceList({ diensten, filter, search, myName }: Props) {
+export function ServiceList({ diensten, filter, myName }: Props) {
   const [showFuture, setShowFuture] = useState(false);
 
   const today = useMemo(() => {
@@ -24,7 +23,6 @@ export function ServiceList({ diensten, filter, search, myName }: Props) {
   }, [today]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return diensten.filter((d) => {
       const dt = parseDate(d.datum);
       if (dt < today) return false;
@@ -32,16 +30,10 @@ export function ServiceList({ diensten, filter, search, myName }: Props) {
       if (filter === "feest" && cat !== "feest") return false;
       if (filter === "ochtend" && cat !== "ochtend") return false;
       if (filter === "avond" && cat !== "avond") return false;
-      if (q) {
-        const hit =
-          d.titel.toLowerCase().includes(q) ||
-          d.misdienaars.some((n) => n.toLowerCase().includes(q));
-        if (!hit) return false;
-      }
       if (myName && !d.misdienaars.includes(myName)) return false;
       return true;
     });
-  }, [diensten, filter, search, myName, today]);
+  }, [diensten, filter, myName, today]);
 
   const groups = useMemo(() => {
     const map = new Map<string, Dienst[]>();

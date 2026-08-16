@@ -51,6 +51,13 @@ function checkPassword(input: string) {
 
 export const listDiensten = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  // Automatisch opruimen: diensten ouder dan 3 maanden verwijderen
+  const cut = new Date();
+  cut.setMonth(cut.getMonth() - 3);
+  const cutoff = `${cut.getFullYear()}-${String(cut.getMonth() + 1).padStart(2, "0")}-${String(cut.getDate()).padStart(2, "0")}`;
+  await supabaseAdmin.from("diensten").delete().lt("datum", cutoff);
+
   const { data, error } = await supabaseAdmin
     .from("diensten")
     .select("*")
