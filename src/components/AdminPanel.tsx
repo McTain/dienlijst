@@ -52,6 +52,16 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [editing, setEditing] = useState<Dienst | null>(null);
   const [creating, setCreating] = useState<Omit<Dienst, "id"> | null>(null);
   const [uploadResult, setUploadResult] = useState<string>("");
+  const [showPast, setShowPast] = useState(false);
+
+  // Splits in aankomende en reeds geweest
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, []);
+  const upcoming = useMemo(() => diensten.filter((d) => d.datum >= todayStr), [diensten, todayStr]);
+  const past = useMemo(() => diensten.filter((d) => d.datum < todayStr), [diensten, todayStr]);
 
   function logout() {
     try {
