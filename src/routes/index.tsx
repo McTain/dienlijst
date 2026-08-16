@@ -112,18 +112,8 @@ function Index() {
 
             <div className="flex flex-wrap gap-3 items-end mb-5 pb-4 border-b border-border">
               <label className="flex-1 min-w-[180px]">
-                <span className="block text-xs text-muted-foreground mb-1">Zoek op naam</span>
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="bv. Harm"
-                  className="w-full border border-input bg-card px-2.5 py-1.5 rounded-sm text-sm"
-                />
-              </label>
-              <label className="flex-1 min-w-[180px]">
                 <span className="block text-xs text-muted-foreground mb-1">
-                  Alleen mijn diensten
+                  Alleen de diensten van...
                 </span>
                 <select
                   value={myName}
