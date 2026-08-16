@@ -113,7 +113,7 @@ function Index() {
             <div className="flex flex-wrap gap-3 items-end mb-5 pb-4 border-b border-border">
               <label className="flex-1 min-w-[180px]">
                 <span className="block text-xs text-muted-foreground mb-1">
-                  Alleen de diensten van...
+                  Toon alleen de diensten van...
                 </span>
                 <select
                   value={myName}
