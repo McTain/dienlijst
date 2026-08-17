@@ -16,10 +16,22 @@ export function ServiceList({ diensten, filter, myName }: Props) {
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
-  const cutoff = useMemo(() => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + 13);
-    return d;
+  const { cutoff, cutoffLabel } = useMemo(() => {
+    const dow = today.getDay();
+    const comingSat = new Date(today);
+    if (dow === 0) {
+      // Zondag: het komende weekend is dat van gisteren/vandaag (eindigt vandaag)
+      comingSat.setDate(today.getDate() - 1);
+    } else if (dow !== 6) {
+      // Doordeweeks: komende zaterdag
+      comingSat.setDate(today.getDate() + (6 - dow));
+    }
+    // Het weekend daarna: komende zaterdag + 8 dagen = die zondag
+    const end = new Date(comingSat);
+    end.setDate(comingSat.getDate() + 8);
+    end.setHours(23, 59, 59, 999);
+    const label = `${end.getDate()} ${MONTHS[end.getMonth()]}`;
+    return { cutoff: end, cutoffLabel: label };
   }, [today]);
 
   const filtered = useMemo(() => {
@@ -58,7 +70,7 @@ export function ServiceList({ diensten, filter, myName }: Props) {
 
   const visible = showFuture ? filtered : nearItems;
 
-  if (visible.length === 0) {
+  if (filtered.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-10 text-sm">
         Geen diensten gevonden.
@@ -77,6 +89,13 @@ export function ServiceList({ diensten, filter, myName }: Props) {
 
   return (
     <div className="space-y-6">
+      {!showFuture && nearItems.length > 0 && (
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Onderstaande diensten vinden plaats tot en met het weekend van{" "}
+          <span className="font-semibold text-primary">{cutoffLabel}</span>.
+          Voor de diensten daarna, klik op de knop hieronder.
+        </p>
+      )}
       {Array.from(visibleGroups.entries()).map(([key, items]) => {
         const [y, m] = key.split("-").map(Number);
         return (
@@ -98,7 +117,7 @@ export function ServiceList({ diensten, filter, myName }: Props) {
           onClick={() => setShowFuture(true)}
           className="w-full text-center text-sm py-3 bg-muted border border-border text-primary hover:bg-primary-bg transition-colors rounded-sm"
         >
-          ▼ Toon alle overige diensten ({futureItems.length})
+          ▼ Toon alle diensten na het weekend van {cutoffLabel} ({futureItems.length})
         </button>
       )}
       {showFuture && futureItems.length > 0 && (
@@ -106,7 +125,7 @@ export function ServiceList({ diensten, filter, myName }: Props) {
           onClick={() => setShowFuture(false)}
           className="w-full text-center text-sm py-3 bg-muted border border-border text-primary hover:bg-primary-bg transition-colors rounded-sm"
         >
-          ▲ Verberg overige diensten
+          ▲ Verberg de diensten na het weekend van {cutoffLabel}
         </button>
       )}
     </div>
