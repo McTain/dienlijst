@@ -93,7 +93,7 @@ export function ServiceList({ diensten, filter, myName }: Props) {
         <p className="text-xs text-muted-foreground leading-relaxed">
           Onderstaande diensten vinden plaats tot en met het weekend van{" "}
           <span className="font-semibold text-primary">{cutoffLabel}</span>.
-          Voor de diensten daarna, klik op de knop hieronder.
+          Voor de diensten daarna, klik op de knop eronder.
         </p>
       )}
       {Array.from(visibleGroups.entries()).map(([key, items]) => {
