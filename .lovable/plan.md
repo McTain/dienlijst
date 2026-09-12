@@ -1,95 +1,52 @@
+# WordPress-integratie Dienlijst
 
 ## Doel
+De Dienlijst-app beschikbaar maken binnen de bestaande WordPress-website van RK Venray, zodat bezoekers niet naar een apart subdomein hoeven.
 
-De bestaande `index.html` (LocalStorage-only) ombouwen tot een moderne webapp met **centrale, gedeelde opslag** zodat ±10 gebruikers/apparaten dezelfde dienlijst zien. Stijl en functionaliteit volgen de huidige pagina (rood-accent #9b1c1c, Lora + Open Sans, RK Venray-uitstraling), maar mobile-first met kaarten i.p.v. tabel.
+## Huidige situatie
+- App is gebouwd met TanStack Start + React + Tailwind.
+- Data en serverfuncties (CRUD, CSV-upload, opruimen oude diensten) draaien via Lovable Cloud (Supabase).
+- Gepubliceerde app staat op `https://dienlijst.lovable.app`.
+- `npm install` + `npm run build` produceren in de huidige configuratie een Cloudflare Worker-bundel, geen statische HTML die je 1-op-1 op een standaard WordPress-host kunt draaien.
 
-## Architectuur
+## Aanbevolen aanpak: iframe-embed
+De snelste en meest onderhoudsvriendelijke oplossing. De app blijft in Lovable draaien; WordPress toont hem in een responsieve iframe.
 
-- **Frontend:** React (TanStack Start, al aanwezig) + Tailwind.
-- **Backend/DB:** Lovable Cloud (Postgres + server functions). Geen externe SaaS-account nodig — je beheert het in het Cloud-tabblad. Eenvoudige export beschikbaar.
-- **Auth admin:** één gedeeld wachtwoord, opgeslagen als server-side secret (`ADMIN_PASSWORD`). Admin-acties (POST/PUT/DELETE/upload) lopen via server functions die het wachtwoord checken. Geen user accounts.
-- **Persoonlijke "mijn naam"-filter:** mag in `localStorage` blijven (puur UI-voorkeur, geen gedeelde data).
+### Stappen
+1. **WordPress-pagina aanmaken**
+   - Maak een pagina aan met slug `/misdienaars`.
+   - Gebruik een full-width template zonder zijbalk en zonder paginatitel (of verberg de titel).
+2. **Iframe toevoegen**
+   - Voeg een Custom HTML-block toe met een iframe.
+   - Bron: `https://dienlijst.lovable.app`.
+   - 100% breedte, responsieve hoogte via iframe-resizer of een vaste `min-height`.
+3. **(Optioneel) Shortcode-plugin**
+   - Maak een mini-plugin `rkvenray-dienlijst/rkvenray-dienlijst.php` die een shortcode `[dienlijst]` output als iframe.
+   - Zo blijft de pagina in de visuele editor overzichtelijk.
+4. **SEO**
+   - Stel in WordPress de pagina-titel en meta-omschrijving in op "Misdienaars – RK Venray".
+   - Bepaal welke URL de canonical wordt: de WordPress-pagina of de Lovable-URL.
+5. **Aanpassingen doorvoeren**
+   - Wijzigingen in Lovable publiceren; de iframe toont automatisch de nieuwe versie.
+   - Indien gewenst kan de app-header/-footer in Lovable worden verwijderd voor een naadlozere integratie.
 
-## Datamodel (Lovable Cloud / Postgres)
+## Alternatief: statische build uploaden naar WordPress
+Als de bestanden écht op de WordPress-server moeten staan:
 
-Tabel `diensten`:
-- `id` uuid PK
-- `datum` date (verplicht)
-- `aanwezig_tijd` time (verplicht)
-- `dienst_tijd` time (verplicht)
-- `titel` text
-- `misdienaars` text[]
-- `toelichting` text
-- `created_at` / `updated_at` timestamptz
-- Unieke index op `(datum, dienst_tijd)` → voorkomt duplicaten bij CSV-import.
+1. Configureer TanStack Start zodat `npm run build` een statische client-only export genereert (`dist/client`).
+2. Upload de inhoud van `dist/client` naar bijvoorbeeld `/wp-content/uploads/dienlijst/`.
+3. Laad de app in WordPress via een iframe of door de gegenereerde JS/CSS in een lege pagina te enqueuen.
+4. **Belangrijk:** serverfuncties (admin, CSV, opruimen) blijven dan een backend nodig hebben. Je houdt Lovable Cloud als backend, of je bouwt een eigen Node/Express-backend op een VPS. Zonder backend werkt alleen het publieke overzicht dat rechtstreeks de database benadert.
 
-RLS:
-- `SELECT` voor `anon` (publiek leesbaar — dit is een openbare dienlijst).
-- `INSERT/UPDATE/DELETE` geblokkeerd voor `anon`/`authenticated`. Alleen `service_role` (server functions met wachtwoord-check) mag schrijven.
+## Technische details
+- `npm install`: installeert alle afhankelijkheden.
+- `npm run build`: huidige setup produceert een server-bundle voor Cloudflare Workers. Voor WordPress heb je daarom ofwel een iframe, ofwel een aangepaste static-export build-configuratie nodig.
+- De database en het admin-wachtwoord (`ADMIN_PASSWORD`) zijn server-secrets; die kunnen niet in een statische WordPress-embed zitten zonder backend.
 
-## Server functions
+## Afhankelijke keuzes
+- WordPress-installatie waarin je een pagina/plugin mag bewerken.
+- Akkoord met iframe, of wil je een native WordPress-pagina waarbij de HTML door WordPress wordt gegenereerd? (Laatste kost aanzienlijk meer werk en vereist een aparte backend.)
+- Moet het beheer (admin) ook binnen WordPress plaatsvinden, of blijft dat via de Lovable-app?
 
-- `listDiensten()` — publieke read, gesorteerd op datum + tijd.
-- `createDienst({ password, dienst })` — wachtwoord-check, insert.
-- `updateDienst({ password, id, patch })` — wachtwoord-check, update.
-- `deleteDienst({ password, id })` — wachtwoord-check, delete.
-- `uploadCsv({ password, csvText })` — parse `Titel;Datum;Aanwezig;Tijd;Misdienaars`, dedupe op (datum, dienst_tijd), bulk-insert, retourneert `{ added, skipped }`.
-- `exportJson({ password })` — alle diensten als JSON (backup).
-- `verifyPassword({ password })` — losse check voor de inlogmodal.
-
-Wachtwoord-vergelijking server-side via `timingSafeEqual`. Zwakke pogingen worden niet gelogd met inhoud.
-
-## Frontend-componenten
-
-- `Header` + `Nav` (zoals huidige pagina, rood topbar, breadcrumb).
-- `Filters`: knoppen "Alle / Ochtend (<12:00) / Avond / Bijzondere diensten (titel niet leeg)" + zoekveld op naam + dropdown "mijn naam".
-- `ServiceList` (mobile-first):
-  - Gegroepeerd per maand (Lora-koppen).
-  - **Mobiel:** kaarten (geen tabel, geen horizontale scroll), 44px+ touch-targets.
-  - **Desktop:** zelfde kaarten in een 2-koloms grid (optioneel) — bewust geen tabel meer.
-  - Verleden diensten zichtbaar; toekomstige diensten na de eerstvolgende inklapbaar ("Toon overige diensten").
-  - Highlight als ingelogde "mijn naam" in `misdienaars` voorkomt.
-- `AdminLoginModal` (wachtwoord).
-- `AdminPanel`:
-  - Lijst alle diensten, knoppen bewerken/verwijderen.
-  - "Nieuwe dienst" knop.
-  - CSV-upload met merge-feedback.
-  - JSON-export-knop (backup download).
-  - Uitloggen.
-- `EditDienstModal`: datum, aanwezig-tijd, dienst-tijd, titel, misdienaars (comma-separated input → array), toelichting. Validatie verplicht: datum + beide tijden.
-- Toasts (sonner) voor feedback: "Opgeslagen", "Verwijderd", "X toegevoegd, Y overgeslagen", API-fouten.
-
-## Design
-
-Trouw aan rkvenray.nl en huidige HTML:
-- Kleuren: `--red #9b1c1c`, `--red-dark #7a1616`, `--red-bg #f9eded`, donker nav `#2b2b2b`, veel wit, lichte randen.
-- Fonts: Lora (serif) voor koppen, Open Sans (sans) voor body.
-- Strak, rustig, kerkelijk, veel witruimte. Geen animaties anders dan subtiele hover/fade.
-
-## Migratie van bestaande data
-
-Bij eerste run is de DB leeg. Twee opties (kies één bij implementatie):
-1. Admin opent de app, logt in, en uploadt het huidige `.txt/.csv`-bestand via de upload-knop.
-2. Ik seed eenmalig de huidige diensten uit de geüploade `index.html` (ingebouwde data) via een migratie-script.
-
-Voorstel: optie 1 (geen vendor-lock op seed, jij houdt zelf controle). Als je liever vooraf-gevuld wilt, doen we optie 2.
-
-## Wat je krijgt
-
-- Werkende webapp in Lovable preview, direct te publiceren naar `*.lovable.app` (of eigen domein).
-- Centrale Cloud-DB; alle gebruikers zien dezelfde data realtime na refresh.
-- Admin-wachtwoord ingesteld via Secrets.
-- Mobile-first kaarten, filters, zoek, maand-groepering, inklapbare toekomst.
-- CSV-upload met dedupe, JSON-export als backup.
-- Stap-voor-stap publish-instructies in de chat na build.
-
-## Wat expliciet NIET in dit plan zit
-
-- Geen losse Node/Express+SQLite backend (jouw keuze: alleen Lovable Cloud).
-- Geen meerdere admin-accounts (jouw keuze: één gedeeld wachtwoord).
-- Geen e-mail/notificaties bij wijzigingen (kan later).
-- Geen drag-and-drop CSV; gewone file-input zoals nu.
-
-## Open vraagje (kan ook tijdens build)
-
-Wil je dat ik de bestaande diensten uit jouw `index.html` éénmalig seed in de database, of begin je liever met een lege DB en upload je zelf het CSV-bestand?
+## Oplevering
+- Een stappenplan en, na goedkeuring, de benodigde code voor de iframe/shortcode en eventuele build-configuratieaanpassingen.
